@@ -1,4 +1,18 @@
-# P5.js-vite Starter Template 🚀
+# monochromifier
+
+make square b&w images I use for another project
+
+## TODO:
+
+- speed of painting
+- paint only on original size (no crop, no zoom)
+- help screen
+- pixeldensity (might work once crop/paint is fixed)
+- publish to gh-pages
+- or make it PART OF two-tone ?
+  - no, let's keep separate
+
+## P5.js-vite Starter Template 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
