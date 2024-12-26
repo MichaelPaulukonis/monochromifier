@@ -4,9 +4,9 @@ const sketch = function (p) {
   let img
   let threshold = 128 // Adjust this value for different threshold levels
   let backgroundColor
-  let buffer
   let displayBuffer
   let paintBuffer
+  let combinedImage = null
   let bwBuffer = null
   let lastThreshold = null
   let dirty = false
@@ -16,26 +16,30 @@ const sketch = function (p) {
   let paintMode = false
   let brushSize = 10
   const density = 1
+  const displaySize = 600
+  const outputSize = 1000
 
   p.preload = function () {
-    img = p.loadImage('./sample_images/phone.00.jpg')
+    img = p.loadImage('./sample_images/unicum.00.jpg')
   }
 
   p.setup = function () {
     p.pixelDensity(density)
-    const c = p.createCanvas(600, 600)
+    const c = p.createCanvas(displaySize, displaySize)
     c.drop(handleFile)
     p.imageMode(p.CENTER)
     backgroundColor = p.color(255, 255, 255)
     p.background(backgroundColor)
 
-    buffer = p.createGraphics(1000, 1000)
-    buffer.imageMode(p.CENTER)
-    buffer.pixelDensity(density)
-    paintBuffer = p.createGraphics(1000, 1000)
+    displayBuffer = p.createGraphics(outputSize, outputSize)
+    displayBuffer.pixelDensity(density)
+    displayBuffer.imageMode(p.CENTER)
+
+    paintBuffer = p.createGraphics(img.width, img.height)
+    paintBuffer.pixelDensity(density)
     paintBuffer.imageMode(p.CENTER)
     paintBuffer.clear()
-    paintBuffer.pixelDensity(density)
+    
     displayBuffer = p.displayCombined(img)
   }
 
@@ -46,10 +50,10 @@ const sketch = function (p) {
     if (paintMode) {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
         brushSize = p.constrain(brushSize + change, 1, 100)
-        displayBuffer = p.displayCombined(img)
+        displayBuffer = p.displayPaint(img)
       } else if (p.keyIsDown(p.LEFT_ARROW)) {
         brushSize = p.constrain(brushSize - change, 1, 100)
-        displayBuffer = p.displayCombined(img)
+        displayBuffer = p.displayPaint(img)
       }
     } else {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
@@ -95,31 +99,17 @@ const sketch = function (p) {
       p.mouseY >= 0 &&
       p.mouseY <= p.height
     ) {
-      const scaledMouseX = p.mouseX * scaleRatio
-      const scaledMouseY = p.mouseY * scaleRatio
-      const scaledPmouseX = p.pmouseX * scaleRatio
-      const scaledPmouseY = p.pmouseY * scaleRatio
-
       paintBuffer.stroke(255)
       paintBuffer.strokeWeight(brushSize)
-      paintBuffer.line(scaledPmouseX, scaledPmouseY, scaledMouseX, scaledMouseY)
-      // TODO: now that b&w is cached,  update the paint buffer
-      displayBuffer = p.displayCombined(img)
+      paintBuffer.line(p.mouseX, p.mouseY, p.mouseX, p.mouseY)
+      displayBuffer = p.displayPaint(img)
       dirty = true
-      // console.log(scaledPmouseX, scaledPmouseY, scaledMouseX, scaledMouseY);
     }
   }
 
-  // p.mouseReleased = function () {
-  //   if (paintMode) {
-  //     displayBuffer = p.displayCombined(img)
-  //     dirty = true
-  //   }
-  // }
-
   p.keyPressed = function () {
     if ((p.keyIsDown(p.CONTROL) || p.keyIsDown(91)) && p.key === 's') {
-      p.save(buffer, generateFilename())
+      p.save(displayBuffer, generateFilename())
       return false // Prevent default browser behavior
     }
     if (p.key === 'i') {
@@ -138,6 +128,26 @@ const sketch = function (p) {
       paintMode = !paintMode
       dirty = true // just for the UI
       console.log(`paint mode: ${paintMode ? 'ON' : 'OFF'}`)
+      if (paintMode) {
+        console.log('paint mode: ON')
+        p.cursor(p.CROSS)
+        p.resizeCanvas(img.width, img.height)
+        const tempBuff = p.createGraphics(img.width, img.height)
+        tempBuff.pixelDensity(density)
+        tempBuff.imageMode(p.CENTER)
+        displayBuffer.remove()
+        displayBuffer = tempBuff
+        p.displayPaint(img)
+      } else {
+        p.cursor()
+        p.resizeCanvas(displaySize, displaySize)
+        const tempBuff = p.createGraphics(outputSize, outputSize)
+        tempBuff.pixelDensity(density)
+        tempBuff.imageMode(p.CENTER)
+        displayBuffer.remove()
+        displayBuffer = tempBuff
+        displayBuffer = p.displayCombined(img)
+      }
     }
   }
 
@@ -157,8 +167,6 @@ const sketch = function (p) {
     )
   }
 
-  // TODO: don't have to scale it, here
-  // monochrome the origin, scale for everything else
   p.getMonochromeImage = function (img, threshold) {
     if (bwBuffer && lastThreshold === threshold) {
       return bwBuffer
@@ -175,10 +183,9 @@ const sketch = function (p) {
     )
 
     newImg.loadPixels()
-    const pd = p.pixelDensity()
-    for (let y = 0; y < img.height * pd; y++) {
-      for (let x = 0; x < img.width * pd; x++) {
-        const index = (x + y * img.width * pd) * 4
+    for (let y = 0; y < img.height * density; y++) {
+      for (let x = 0; x < img.width * density; x++) {
+        const index = (x + y * img.width * density) * 4
         const r = newImg.pixels[index]
         const g = newImg.pixels[index + 1]
         const b = newImg.pixels[index + 2]
@@ -210,11 +217,18 @@ const sketch = function (p) {
 
     return newImg
   }
-  // TODO: only redo monochromification if threshold changes
-  // otherwise cache
-  // painting is on un-cropped/unzoomed version
-  // this simplifies all the stupid math stuff
-  // and improves speed( just caching would it, too)
+
+  p.displayPaint = function (img) {
+    const newImg = p.getMonochromeImage(img, threshold)
+
+    displayBuffer.background(backgroundColor)
+    displayBuffer.image(newImg, displayBuffer.width / 2, displayBuffer.height / 2)
+    displayBuffer.image(paintBuffer, displayBuffer.width / 2, displayBuffer.height / 2)
+
+    dirty = true
+    return displayBuffer
+  }
+
   p.displayCombined = function (img) {
     scaleRatio = p.calculateScaleRatio(img)
     const scaledWidth = Math.round(img.width * scaleRatio)
@@ -222,10 +236,11 @@ const sketch = function (p) {
 
     const newImg = p.getMonochromeImage(img, threshold)
 
-    // Combine monochrome image and paint buffer
-    const combinedImage = p.createGraphics(scaledWidth, scaledHeight)
-    combinedImage.pixelDensity(density)
-    // combinedImage.imageMode(p.CENTER)
+    if (combinedImage === null) {
+      combinedImage = p.createGraphics(scaledWidth, scaledHeight)
+      combinedImage.pixelDensity(density)
+    }
+
     combinedImage.image(newImg, 0, 0, scaledWidth, scaledHeight, 0, 0, img.width, img.height)
     combinedImage.image(paintBuffer, 0, 0, scaledWidth, scaledHeight)
 
@@ -254,23 +269,18 @@ const sketch = function (p) {
       finalHeight
     )
 
-    buffer.background(backgroundColor)
-    buffer.image(finalImg, buffer.width / 2, buffer.height / 2)
-    // console.log(buffer.width, buffer.height, finalImg.width, finalImg.height);
+    displayBuffer.background(backgroundColor)
+    displayBuffer.image(finalImg, displayBuffer.width / 2, displayBuffer.height / 2)
     dirty = true
-    return buffer
+    return displayBuffer
   }
 
   p.calculateScaleRatio = function (img) {
-    const maxSize = 1000
+    // canvas size should be a square, normally
+    // if not, we can reconsider everything
+    const maxSize = outputSize
     const maxImgSize = Math.max(img.width, img.height)
     return maxSize / maxImgSize
-  }
-
-  p.calculateInitialSizeRatio = function (img) {
-    const canvasSize = Math.min(p.width, p.height)
-    const imgSize = Math.max(img.width, img.height)
-    return canvasSize / imgSize
   }
 
   function handleFile (file) {
@@ -284,22 +294,21 @@ const sketch = function (p) {
     }
   }
 
-  p.cropWhitespace = function (img) {
-    img.loadPixels()
+  p.cropWhitespace = function (buffer) {
+    buffer.loadPixels()
     let top = 0
-    let bottom = img.height - 1
+    let bottom = buffer.height - 1
     let left = 0
-    let right = img.width - 1
-    const pd = p.pixelDensity()
+    let right = buffer.width - 1
 
     // Find top boundary
-    outer: for (let y = 0; y < img.height * pd; y++) {
-      for (let x = 0; x < img.width * pd; x++) {
-        const index = (x + y * img.width * pd) * 4
+    outer: for (let y = 0; y < buffer.height * density; y++) {
+      for (let x = 0; x < buffer.width * density; x++) {
+        const index = (x + y * buffer.width * density) * 4
         if (
-          img.pixels[index] !== p.red(backgroundColor) ||
-          img.pixels[index + 1] !== p.green(backgroundColor) ||
-          img.pixels[index + 2] !== p.blue(backgroundColor)
+          buffer.pixels[index] !== p.red(backgroundColor) ||
+          buffer.pixels[index + 1] !== p.green(backgroundColor) ||
+          buffer.pixels[index + 2] !== p.blue(backgroundColor)
         ) {
           top = y
           break outer
@@ -308,13 +317,13 @@ const sketch = function (p) {
     }
 
     // Find bottom boundary
-    outer: for (let y = img.height * pd - 1; y >= 0; y--) {
-      for (let x = 0; x < img.width * pd; x++) {
-        const index = (x + y * img.width * pd) * 4
+    outer: for (let y = buffer.height * density - 1; y >= 0; y--) {
+      for (let x = 0; x < buffer.width * density; x++) {
+        const index = (x + y * buffer.width * density) * 4
         if (
-          img.pixels[index] !== p.red(backgroundColor) ||
-          img.pixels[index + 1] !== p.green(backgroundColor) ||
-          img.pixels[index + 2] !== p.blue(backgroundColor)
+          buffer.pixels[index] !== p.red(backgroundColor) ||
+          buffer.pixels[index + 1] !== p.green(backgroundColor) ||
+          buffer.pixels[index + 2] !== p.blue(backgroundColor)
         ) {
           bottom = y
           break outer
@@ -323,13 +332,13 @@ const sketch = function (p) {
     }
 
     // Find left boundary
-    outer: for (let x = 0; x < img.width * pd; x++) {
-      for (let y = 0; y < img.height * pd; y++) {
-        const index = (x + y * img.width * pd) * 4
+    outer: for (let x = 0; x < buffer.width * density; x++) {
+      for (let y = 0; y < buffer.height * density; y++) {
+        const index = (x + y * buffer.width * density) * 4
         if (
-          img.pixels[index] !== p.red(backgroundColor) ||
-          img.pixels[index + 1] !== p.green(backgroundColor) ||
-          img.pixels[index + 2] !== p.blue(backgroundColor)
+          buffer.pixels[index] !== p.red(backgroundColor) ||
+          buffer.pixels[index + 1] !== p.green(backgroundColor) ||
+          buffer.pixels[index + 2] !== p.blue(backgroundColor)
         ) {
           left = x
           break outer
@@ -338,13 +347,13 @@ const sketch = function (p) {
     }
 
     // Find right boundary
-    outer: for (let x = img.width * pd - 1; x >= 0; x--) {
-      for (let y = 0; y < img.height * pd; y++) {
-        const index = (x + y * img.width * pd) * 4
+    outer: for (let x = buffer.width * density - 1; x >= 0; x--) {
+      for (let y = 0; y < buffer.height * density; y++) {
+        const index = (x + y * buffer.width * density) * 4
         if (
-          img.pixels[index] !== p.red(backgroundColor) ||
-          img.pixels[index + 1] !== p.green(backgroundColor) ||
-          img.pixels[index + 2] !== p.blue(backgroundColor)
+          buffer.pixels[index] !== p.red(backgroundColor) ||
+          buffer.pixels[index + 1] !== p.green(backgroundColor) ||
+          buffer.pixels[index + 2] !== p.blue(backgroundColor)
         ) {
           right = x
           break outer
@@ -356,7 +365,7 @@ const sketch = function (p) {
     const croppedHeight = bottom - top + 1
     const croppedImg = p.createImage(croppedWidth, croppedHeight)
     croppedImg.copy(
-      img,
+      buffer,
       left,
       top,
       croppedWidth,
