@@ -4,12 +4,16 @@ make square b&w images I use for another project
 
 ## TODO:
 
-- speed of painting
-- paint only on original size (no crop, no zoom)
+- ~~speed of painting~~
+- ~~paint only on original size (no crop, no zoom)~~
 - help screen
 - pixeldensity (might work once crop/paint is fixed)
+- remove paint
+- clear paint
+- invert image?
+- clear canvas? Allow for paint only (eh, I dunno)
 - publish to gh-pages
-- or make it PART OF two-tone ?
+- ~~or make it PART OF two-tone ?~~
   - no, let's keep separate
 
 ## P5.js-vite Starter Template 🚀

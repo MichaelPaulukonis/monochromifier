@@ -18,6 +18,7 @@ const sketch = function (p) {
   const displaySize = 600
   const outputSize = 1000
   let previousMouse = { x: 0, y: 0 }
+  let showHelp = false
 
   p.preload = function () {
     img = p.loadImage('./sample_images/unicum.00.jpg')
@@ -44,6 +45,10 @@ const sketch = function (p) {
   }
 
   p.draw = function () {
+    if (showHelp) {
+      displayHelpScreen()
+      return
+    }
     debounceKeys()
     if (displayBuffer && dirty) {
       p.background(backgroundColor)
@@ -164,6 +169,7 @@ const sketch = function (p) {
       dirty = true
     }
     if (p.key === 'p') {
+      showHelp = false
       paintMode = !paintMode
       dirty = true // just for the UI
       console.log(`paint mode: ${paintMode ? 'ON' : 'OFF'}`)
@@ -188,6 +194,10 @@ const sketch = function (p) {
         displayBuffer = tempBuff
         displayBuffer = p.displayCombined(img)
       }
+    }
+    if (p.key === 'h' || p.key === 'H') {
+      showHelp = !showHelp
+      dirty = true
     }
     return false
   }
@@ -434,6 +444,28 @@ const sketch = function (p) {
       croppedHeight
     )
     return croppedImg
+  }
+
+  function displayHelpScreen() {
+    p.fill(50, 150)
+    p.rect(50, 50, p.width - 100, p.height - 100, 10)
+
+    p.fill(255)
+    p.textSize(16)
+    p.textAlign(p.LEFT, p.TOP)
+    p.text(`
+      Help Screen:
+
+      h - Show/Hide this help screen
+      p - Paint
+      → - increase zoom
+      ← - decrease zoom
+      ↑ - increase threshold
+      ↓ - decrease threshold
+      → - increase brush size
+      ← - decrease brush size
+      CMD-s - Save image
+      `, 70, 70)
   }
 }
 
