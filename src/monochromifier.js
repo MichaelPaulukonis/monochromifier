@@ -10,7 +10,6 @@ const sketch = function (p) {
   let bwBuffer = null
   let lastThreshold = null
   let dirty = false
-  let scaleRatio = 1
   let invert = false
   let sizeRatio = 1
   let paintMode = false
@@ -45,6 +44,7 @@ const sketch = function (p) {
   }
 
   p.draw = function () {
+    debounceKeys()
     if (displayBuffer && dirty) {
       p.background(backgroundColor)
       p.image(displayBuffer, p.width / 2, p.height / 2, p.width, p.height)
@@ -101,10 +101,15 @@ const sketch = function (p) {
     }
   }
 
-  // this works, but only if things are in draw
-  // will we get repetition ugh
-  p.keyPressed = () => {
+  p.mouseReleased = function () {
+    previousMouse = { x: 0, y: 0 }
+  }
 
+  p.mousePressed = function () {
+    previousMouse = { x: p.mouseX, y: p.mouseY }
+  }
+
+  const specialKeys = () => {
     const change = p.keyIsDown(p.SHIFT) ? 1 : 10
 
     if (paintMode) {
@@ -137,6 +142,15 @@ const sketch = function (p) {
       p.save(displayBuffer, generateFilename())
       return false // Prevent default browser behavior
     }
+    return false
+  }
+
+  let debounceKeys = debounce(specialKeys, 17)
+
+  p.keyPressed = () => handleKeys()
+
+  const handleKeys = () => {
+
     if (p.key === 'i') {
       invert = !invert
       backgroundColor = invert ? p.color(0, 0, 0) : p.color(255, 255, 255)
@@ -175,6 +189,7 @@ const sketch = function (p) {
         displayBuffer = p.displayCombined(img)
       }
     }
+    return false
   }
 
   function generateFilename () {
@@ -238,6 +253,8 @@ const sketch = function (p) {
   }
 
   p.displayPaint = function (img) {
+    // to scale this, we also have to have scaled at createGraphics
+    // const scaleRatio = calculateScaleRatio(img, outputSize)
     const newImg = p.getMonochromeImage(img, threshold)
 
     displayBuffer.background(backgroundColor)
@@ -257,7 +274,7 @@ const sketch = function (p) {
   }
 
   p.displayCombined = function (img) {
-    scaleRatio = p.calculateScaleRatio(img)
+    const scaleRatio = calculateScaleRatio(img, outputSize)
     const scaledWidth = Math.round(img.width * scaleRatio)
     const scaledHeight = Math.round(img.height * scaleRatio)
 
@@ -285,7 +302,7 @@ const sketch = function (p) {
 
     // Scale the cropped image to ensure it is as large as possible
     // and apply zoom
-    const finalScaleRatio = p.calculateScaleRatio(croppedImg)
+    const finalScaleRatio = calculateScaleRatio(croppedImg, outputSize)
     const finalWidth = Math.round(
       croppedImg.width * finalScaleRatio * sizeRatio
     )
@@ -316,7 +333,7 @@ const sketch = function (p) {
     return displayBuffer
   }
 
-  p.calculateScaleRatio = function (img) {
+  const calculateScaleRatio = function (img, size) {
     // canvas size should be a square, normally
     // if not, we can reconsider everything
     const maxSize = outputSize
