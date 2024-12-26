@@ -18,6 +18,7 @@ const sketch = function (p) {
   const density = 1
   const displaySize = 600
   const outputSize = 1000
+  let previousMouse = { x: 0, y: 0 }
 
   p.preload = function () {
     img = p.loadImage('./sample_images/unicum.00.jpg')
@@ -39,12 +40,71 @@ const sketch = function (p) {
     paintBuffer.pixelDensity(density)
     paintBuffer.imageMode(p.CENTER)
     paintBuffer.clear()
-    
+
     displayBuffer = p.displayCombined(img)
   }
 
   p.draw = function () {
-    // SHIFT is now for "fine-tuning", default is 10
+    if (displayBuffer && dirty) {
+      p.background(backgroundColor)
+      p.image(displayBuffer, p.width / 2, p.height / 2, p.width, p.height)
+
+      dirty = false
+
+      p.displayUI()
+    }
+  }
+
+  p.displayUI = function () {
+    p.fill('blue')
+    p.noStroke()
+    p.textSize(16)
+    p.text(`threshold: ${threshold}`, 10, p.height - 70)
+    p.text(`zoom: ${(sizeRatio * 100).toFixed(0)}%`, 10, p.height - 50)
+    p.text(`paint mode: ${paintMode ? 'ON' : 'OFF'}`, 10, p.height - 30)
+    if (paintMode) {
+      p.text(`brush size: ${brushSize}`, 10, p.height - 10)
+    }
+  }
+
+  function debounce (func, wait) {
+    let timeout
+    return function executedFunction (...args) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
+    }
+  }
+
+  p.mouseDragged = function () {
+    // Debounced version of mouseDragged
+    const debouncedMouseDragged = debounce((x, y, brushSize) => {
+      paintBuffer.stroke(255)
+      paintBuffer.strokeWeight(brushSize)
+      paintBuffer.line(previousMouse.x, previousMouse.y, x, y)
+      previousMouse = { x, y }
+      displayBuffer = p.displayPaint(img)
+      dirty = true
+    }, 16) // 60fps = ~16ms between frames
+
+    if (
+      paintMode &&
+      p.mouseX >= 0 &&
+      p.mouseX <= p.width &&
+      p.mouseY >= 0 &&
+      p.mouseY <= p.height
+    ) {
+      debouncedMouseDragged(p.mouseX, p.mouseY, brushSize)
+    }
+  }
+
+  // this works, but only if things are in draw
+  // will we get repetition ugh
+  p.keyPressed = () => {
+
     const change = p.keyIsDown(p.SHIFT) ? 1 : 10
 
     if (paintMode) {
@@ -73,41 +133,6 @@ const sketch = function (p) {
       displayBuffer = p.displayCombined(img)
     }
 
-    if (displayBuffer && dirty) {
-      p.background(backgroundColor)
-      p.image(displayBuffer, p.width / 2, p.height / 2, p.width, p.height)
-
-      dirty = false
-
-      p.fill('blue')
-      p.noStroke()
-      p.textSize(16)
-      p.text(`threshold: ${threshold}`, 10, p.height - 70)
-      p.text(`zoom: ${(sizeRatio * 100).toFixed(0)}%`, 10, p.height - 50)
-      p.text(`paint mode: ${paintMode ? 'ON' : 'OFF'}`, 10, p.height - 30)
-      if (paintMode) {
-        p.text(`brush size: ${brushSize}`, 10, p.height - 10)
-      }
-    }
-  }
-
-  p.mouseDragged = function () {
-    if (
-      paintMode &&
-      p.mouseX >= 0 &&
-      p.mouseX <= p.width &&
-      p.mouseY >= 0 &&
-      p.mouseY <= p.height
-    ) {
-      paintBuffer.stroke(255)
-      paintBuffer.strokeWeight(brushSize)
-      paintBuffer.line(p.mouseX, p.mouseY, p.mouseX, p.mouseY)
-      displayBuffer = p.displayPaint(img)
-      dirty = true
-    }
-  }
-
-  p.keyPressed = function () {
     if ((p.keyIsDown(p.CONTROL) || p.keyIsDown(91)) && p.key === 's') {
       p.save(displayBuffer, generateFilename())
       return false // Prevent default browser behavior
@@ -138,6 +163,7 @@ const sketch = function (p) {
         displayBuffer.remove()
         displayBuffer = tempBuff
         p.displayPaint(img)
+        previousMouse = { x: p.mouseX, y: p.mouse }
       } else {
         p.cursor()
         p.resizeCanvas(displaySize, displaySize)
@@ -173,14 +199,7 @@ const sketch = function (p) {
     }
 
     const newImg = p.createImage(img.width, img.height)
-    newImg.copy(
-      img,
-      0,
-      0,
-      img.width, img.height,
-      0, 0,
-      img.width, img.height
-    )
+    newImg.copy(img, 0, 0, img.width, img.height, 0, 0, img.width, img.height)
 
     newImg.loadPixels()
     for (let y = 0; y < img.height * density; y++) {
@@ -222,8 +241,16 @@ const sketch = function (p) {
     const newImg = p.getMonochromeImage(img, threshold)
 
     displayBuffer.background(backgroundColor)
-    displayBuffer.image(newImg, displayBuffer.width / 2, displayBuffer.height / 2)
-    displayBuffer.image(paintBuffer, displayBuffer.width / 2, displayBuffer.height / 2)
+    displayBuffer.image(
+      newImg,
+      displayBuffer.width / 2,
+      displayBuffer.height / 2
+    )
+    displayBuffer.image(
+      paintBuffer,
+      displayBuffer.width / 2,
+      displayBuffer.height / 2
+    )
 
     dirty = true
     return displayBuffer
@@ -241,7 +268,17 @@ const sketch = function (p) {
       combinedImage.pixelDensity(density)
     }
 
-    combinedImage.image(newImg, 0, 0, scaledWidth, scaledHeight, 0, 0, img.width, img.height)
+    combinedImage.image(
+      newImg,
+      0,
+      0,
+      scaledWidth,
+      scaledHeight,
+      0,
+      0,
+      img.width,
+      img.height
+    )
     combinedImage.image(paintBuffer, 0, 0, scaledWidth, scaledHeight)
 
     const croppedImg = p.cropWhitespace(combinedImage)
@@ -270,7 +307,11 @@ const sketch = function (p) {
     )
 
     displayBuffer.background(backgroundColor)
-    displayBuffer.image(finalImg, displayBuffer.width / 2, displayBuffer.height / 2)
+    displayBuffer.image(
+      finalImg,
+      displayBuffer.width / 2,
+      displayBuffer.height / 2
+    )
     dirty = true
     return displayBuffer
   }
