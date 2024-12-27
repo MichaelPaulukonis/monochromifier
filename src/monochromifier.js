@@ -13,15 +13,17 @@ const sketch = function (p) {
   let dirty = false
   let invert = false
   let sizeRatio = 1
-  let paintMode = false
   let brushSize = 10
   const density = 1
   const displaySize = 600
   const outputSize = 1000
   let previousMouse = { x: 0, y: 0 }
-  let showHelp = false
-  let showUI = true
-  let processing = false
+  const modal = {
+    showHelp: false,
+    showUI: true,
+    processing: false,
+    paintMode: false
+  }
 
   p.preload = function () {
     img = p.loadImage('./sample_images/unicum.00.jpg')
@@ -59,11 +61,11 @@ const sketch = function (p) {
   }
 
   p.draw = function () {
-    if (showHelp) {
+    if (modal.showHelp) {
       displayHelpScreen()
       return
     }
-    if (processing) {
+    if (modal.processing) {
       displayProcessingText()
       return
     }
@@ -74,7 +76,7 @@ const sketch = function (p) {
 
       dirty = false
 
-      if (showUI) displayUI()
+      if (modal.showUI) displayUI()
     }
   }
 
@@ -92,7 +94,7 @@ const sketch = function (p) {
 
   p.mouseDragged = function () {
     if (
-      paintMode &&
+      modal.paintMode &&
       p.mouseX >= 0 &&
       p.mouseX <= p.width &&
       p.mouseY >= 0 &&
@@ -119,7 +121,7 @@ const sketch = function (p) {
   const specialKeys = () => {
     const change = p.keyIsDown(p.SHIFT) ? 1 : 10
 
-    if (paintMode) {
+    if (modal.paintMode) {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
         brushSize = p.constrain(brushSize + change, 1, 100)
         displayBuffer = p.displayPaint(img)
@@ -168,10 +170,10 @@ const sketch = function (p) {
       dirty = true
     }
     if (p.key === 'p') {
-      showHelp = false
-      paintMode = !paintMode
+      modal.showHelp = false
+      modal.paintMode = !modal.paintMode
       dirty = true // just for the UI
-      if (paintMode) {
+      if (modal.paintMode) {
         p.cursor(p.CROSS)
         p.resizeCanvas(img.width, img.height)
         const tempBuff = p.createGraphics(img.width, img.height)
@@ -193,14 +195,14 @@ const sketch = function (p) {
       }
     }
     if (p.key === '?') {
-      showHelp = !showHelp
+      modal.showHelp = !modal.showHelp
       dirty = true
     } else if (p.key === 'h' || p.key === 'H') {
-      showUI = !showUI
+      modal.showUI = !modal.showUI
       dirty = true
     } else if (
       p.key === 's' &&
-      !paintMode &&
+      !modal.paintMode &&
       (p.keyIsDown(p.CONTROL) || p.keyIsDown(91))
     ) {
       p.save(displayBuffer, generateFilename())
@@ -358,11 +360,11 @@ const sketch = function (p) {
 
   function handleFile (file) {
     if (file.type === 'image') {
-      processing = true
+      modal.processing = true
       img = p.loadImage(file.data, loadedImg => {
         img = loadedImg
         bwBuffer = null
-        processing = false
+        modal.processing = false
         setupPaintBuffer(img)
         combinedImage = null
         displayBuffer = p.displayCombined(img)
@@ -458,9 +460,9 @@ const sketch = function (p) {
   const displayUI = () => {
     const uiText = [
       `threshold: ${threshold}`,
-      !paintMode ? `zoom: ${(sizeRatio * 100).toFixed(0)}%` : '',
-      `paint mode: ${paintMode ? 'ON' : 'OFF'}`,
-      paintMode ? `brush size: ${brushSize}` : ''
+      !modal.paintMode ? `zoom: ${(sizeRatio * 100).toFixed(0)}%` : '',
+      `paint mode: ${modal.paintMode ? 'ON' : 'OFF'}`,
+      modal.paintMode ? `brush size: ${brushSize}` : ''
     ].filter(Boolean)
 
     const boxWidth = 200
