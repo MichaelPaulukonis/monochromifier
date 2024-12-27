@@ -10,7 +10,7 @@ make square b&w images I use for another project
 - pixeldensity (might work once crop/paint is fixed)
 - paint enhancements
   - delete
-  - clear entire
+  - ~~clear entire~~
   - show paintbrush
   - fit on-screen (zoom?)
 - invert image?

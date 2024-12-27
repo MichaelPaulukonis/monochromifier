@@ -1,8 +1,9 @@
 import { p5 } from 'p5js-wrapper'
+import '../css/style.css'
 
 const sketch = function (p) {
   let img
-  let threshold = 128 // Adjust this value for different threshold levels
+  let threshold = 128
   let backgroundColor
   let displayBuffer
   let paintBuffer
@@ -90,16 +91,6 @@ const sketch = function (p) {
   }
 
   p.mouseDragged = function () {
-    // Debounced version of mouseDragged
-    const debouncedMouseDragged = debounce((x, y, brushSize) => {
-      paintBuffer.stroke(255)
-      paintBuffer.strokeWeight(brushSize)
-      paintBuffer.line(previousMouse.x, previousMouse.y, x, y)
-      previousMouse = { x, y }
-      displayBuffer = p.displayPaint(img)
-      dirty = true
-    }, 16) // 60fps = ~16ms between frames
-
     if (
       paintMode &&
       p.mouseX >= 0 &&
@@ -107,10 +98,16 @@ const sketch = function (p) {
       p.mouseY >= 0 &&
       p.mouseY <= p.height
     ) {
-      debouncedMouseDragged(p.mouseX, p.mouseY, brushSize)
+      paintBuffer.stroke(255)
+      paintBuffer.strokeWeight(brushSize)
+      paintBuffer.line(previousMouse.x, previousMouse.y, p.mouseX, p.mouseY)
+      previousMouse = { x: p.mouseX, y: p.mouseY }
+      displayBuffer = p.displayPaint(img)
+      dirty = true
     }
   }
 
+  // NOT debunced, so we've got ... weirdness
   p.mouseReleased = function () {
     previousMouse = { x: 0, y: 0 }
   }
@@ -129,6 +126,10 @@ const sketch = function (p) {
       } else if (p.keyIsDown(p.LEFT_ARROW)) {
         brushSize = p.constrain(brushSize - change, 1, 100)
         displayBuffer = p.displayPaint(img)
+      } else if (p.keyIsDown(p.BACKSPACE) || p.keyIsDown(p.DELETE)) {
+        paintBuffer.clear()
+        displayBuffer = p.displayPaint(img)
+        dirty = true
       }
     } else {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
@@ -171,7 +172,6 @@ const sketch = function (p) {
       paintMode = !paintMode
       dirty = true // just for the UI
       if (paintMode) {
-        console.log('paint mode: ON')
         p.cursor(p.CROSS)
         p.resizeCanvas(img.width, img.height)
         const tempBuff = p.createGraphics(img.width, img.height)
@@ -198,7 +198,11 @@ const sketch = function (p) {
     } else if (p.key === 'h' || p.key === 'H') {
       showUI = !showUI
       dirty = true
-    } else if (p.key === 's' && !paintMode && (p.keyIsDown(p.CONTROL) || p.keyIsDown(91))) {
+    } else if (
+      p.key === 's' &&
+      !paintMode &&
+      (p.keyIsDown(p.CONTROL) || p.keyIsDown(91))
+    ) {
       p.save(displayBuffer, generateFilename())
     }
     return false // Prevent default browser behavior
@@ -454,7 +458,7 @@ const sketch = function (p) {
   const displayUI = () => {
     const uiText = [
       `threshold: ${threshold}`,
-      `zoom: ${(sizeRatio * 100).toFixed(0)}%`,
+      !paintMode ? `zoom: ${(sizeRatio * 100).toFixed(0)}%` : '',
       `paint mode: ${paintMode ? 'ON' : 'OFF'}`,
       paintMode ? `brush size: ${brushSize}` : ''
     ].filter(Boolean)

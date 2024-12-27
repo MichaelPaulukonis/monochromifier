@@ -5,21 +5,12 @@ body {
   align-items: center;
   text-align: center;
 }
+
 canvas {
   display: block;
-}
-
-#one {
+  margin: auto;
+  /* margin-top: 50px; */
   display: block;
-  width: 800px;
-  height: 600px;
-}
-
-#two {
-  display: block;
-  margin-top: 10px;
-  width: 800px;
-  height: 600px;
 }
 
 /* Options in index.html */
