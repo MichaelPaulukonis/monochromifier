@@ -19,6 +19,8 @@ const sketch = function (p) {
   const outputSize = 1000
   let previousMouse = { x: 0, y: 0 }
   let showHelp = false
+  let showUI = true
+  let processing = false
 
   p.preload = function () {
     img = p.loadImage('./sample_images/unicum.00.jpg')
@@ -53,13 +55,15 @@ const sketch = function (p) {
     combinedImage && combinedImage.remove()
     combinedImage = p.createGraphics(width, height)
     combinedImage.pixelDensity(density)
-    // combinedImage.imageMode(p.CENTER)
-    // combinedImage.clear()
   }
 
   p.draw = function () {
     if (showHelp) {
       displayHelpScreen()
+      return
+    }
+    if (processing) {
+      displayProcessingText()
       return
     }
     specialKeys()
@@ -69,19 +73,7 @@ const sketch = function (p) {
 
       dirty = false
 
-      p.displayUI()
-    }
-  }
-
-  p.displayUI = function () {
-    p.fill('blue')
-    p.noStroke()
-    p.textSize(16)
-    p.text(`threshold: ${threshold}`, 10, p.height - 70)
-    p.text(`zoom: ${(sizeRatio * 100).toFixed(0)}%`, 10, p.height - 50)
-    p.text(`paint mode: ${paintMode ? 'ON' : 'OFF'}`, 10, p.height - 30)
-    if (paintMode) {
-      p.text(`brush size: ${brushSize}`, 10, p.height - 10)
+      if (showUI) displayUI()
     }
   }
 
@@ -163,12 +155,9 @@ const sketch = function (p) {
     return false
   }
 
-  // let debounceKeys = debounce(specialKeys, 17)
-
   p.keyPressed = () => handleKeys()
 
   const handleKeys = () => {
-
     if (p.key === 'i') {
       invert = !invert
       backgroundColor = invert ? p.color(0, 0, 0) : p.color(255, 255, 255)
@@ -207,8 +196,11 @@ const sketch = function (p) {
         displayBuffer = p.displayCombined(img)
       }
     }
-    if (p.key === 'h' || p.key === 'H') {
+    if (p.key === '?') {
       showHelp = !showHelp
+      dirty = true
+    } else if (p.key === 'h' || p.key === 'H') {
+      showUI = !showUI
       dirty = true
     }
     return false
@@ -364,9 +356,11 @@ const sketch = function (p) {
 
   function handleFile (file) {
     if (file.type === 'image') {
+      processing = true
       img = p.loadImage(file.data, loadedImg => {
         img = loadedImg
         bwBuffer = null
+        processing = false
         setupPaintBuffer(img)
         combinedImage = null
         displayBuffer = p.displayCombined(img)
@@ -459,14 +453,38 @@ const sketch = function (p) {
     return croppedImg
   }
 
-  function displayHelpScreen() {
+  const displayUI = () => {
+    const uiText = [
+      `threshold: ${threshold}`,
+      `zoom: ${(sizeRatio * 100).toFixed(0)}%`,
+      `paint mode: ${paintMode ? 'ON' : 'OFF'}`,
+      paintMode ? `brush size: ${brushSize}` : ''
+    ].filter(Boolean)
+
+    const boxWidth = 200
+    const boxHeight = uiText.length * 20 + 20
+
+    p.fill(0, 150)
+    p.noStroke()
+    p.rect(5, p.height - boxHeight - 5, boxWidth, boxHeight, 10)
+
+    p.fill('white')
+    p.textSize(16)
+    p.textAlign(p.LEFT, p.TOP)
+    uiText.forEach((text, index) => {
+      p.text(text, 10, p.height - boxHeight + 10 + index * 20)
+    })
+  }
+
+  function displayHelpScreen () {
     p.fill(50, 150)
     p.rect(50, 50, p.width - 100, p.height - 100, 10)
 
     p.fill(255)
     p.textSize(16)
     p.textAlign(p.LEFT, p.TOP)
-    p.text(`
+    p.text(
+      `
       Help Screen:
 
       h - Show/Hide this help screen
@@ -478,7 +496,20 @@ const sketch = function (p) {
       → - increase brush size
       ← - decrease brush size
       CMD-s - Save image
-      `, 70, 70)
+      `,
+      70,
+      70
+    )
+  }
+
+  function displayProcessingText () {
+    p.fill(0, 150)
+    p.rect(50, 50, p.width - 100, 100, 10)
+
+    p.fill(255)
+    p.textSize(16)
+    p.textAlign(p.CENTER, p.CENTER)
+    p.text('Processing image, please wait...', p.width / 2, 100)
   }
 }
 

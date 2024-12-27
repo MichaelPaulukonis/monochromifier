@@ -6,11 +6,16 @@ make square b&w images I use for another project
 
 - ~~speed of painting~~
 - ~~paint only on original size (no crop, no zoom)~~
-- help screen
+- ~~help screen~~
 - pixeldensity (might work once crop/paint is fixed)
-- remove paint
-- clear paint
+- paint enhancements
+  - delete
+  - clear entire
+  - show paintbrush
+  - fit on-screen (zoom?)
 - invert image?
+- fit to horizontal or vertical (current default)
+- shift zoomed image (up/down only?)
 - clear canvas? Allow for paint only (eh, I dunno)
 - publish to gh-pages
 - ~~or make it PART OF two-tone ?~~
