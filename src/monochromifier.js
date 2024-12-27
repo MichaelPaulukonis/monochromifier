@@ -73,8 +73,16 @@ const sketch = function (p) {
     if (displayBuffer && dirty) {
       p.background(backgroundColor)
       p.image(displayBuffer, p.width / 2, p.height / 2, p.width, p.height)
-
       dirty = false
+
+      if (modal.paintMode) {
+        // draw brush
+        p.stroke(0)
+        p.strokeWeight(1)
+        p.fill(255)
+        p.ellipse(p.mouseX, p.mouseY, brushSize)
+        dirty = true
+      }
 
       if (modal.showUI) displayUI()
     }
@@ -92,6 +100,15 @@ const sketch = function (p) {
     }
   }
 
+  const drawPaintLine = () => {
+    paintBuffer.stroke(255)
+    paintBuffer.strokeWeight(brushSize)
+    paintBuffer.line(previousMouse.x, previousMouse.y, p.mouseX, p.mouseY)
+    previousMouse = { x: p.mouseX, y: p.mouseY }
+    displayBuffer = p.displayPaint(img)
+    dirty = true
+  }
+
   p.mouseDragged = function () {
     if (
       modal.paintMode &&
@@ -100,22 +117,17 @@ const sketch = function (p) {
       p.mouseY >= 0 &&
       p.mouseY <= p.height
     ) {
-      paintBuffer.stroke(255)
-      paintBuffer.strokeWeight(brushSize)
-      paintBuffer.line(previousMouse.x, previousMouse.y, p.mouseX, p.mouseY)
-      previousMouse = { x: p.mouseX, y: p.mouseY }
-      displayBuffer = p.displayPaint(img)
-      dirty = true
+      drawPaintLine()
     }
   }
 
-  // NOT debunced, so we've got ... weirdness
   p.mouseReleased = function () {
     previousMouse = { x: 0, y: 0 }
   }
 
   p.mousePressed = function () {
     previousMouse = { x: p.mouseX, y: p.mouseY }
+    drawPaintLine()
   }
 
   const specialKeys = () => {
