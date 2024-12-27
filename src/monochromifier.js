@@ -36,12 +36,25 @@ const sketch = function (p) {
     displayBuffer.pixelDensity(density)
     displayBuffer.imageMode(p.CENTER)
 
-    paintBuffer = p.createGraphics(img.width, img.height)
+    setupPaintBuffer(img)
+
+    displayBuffer = p.displayCombined(img)
+  }
+
+  const setupPaintBuffer = ({ width, height }) => {
+    paintBuffer && paintBuffer.remove()
+    paintBuffer = p.createGraphics(width, height)
     paintBuffer.pixelDensity(density)
     paintBuffer.imageMode(p.CENTER)
     paintBuffer.clear()
+  }
 
-    displayBuffer = p.displayCombined(img)
+  const setupCombinedBuffer = ({ width, height }) => {
+    combinedImage && combinedImage.remove()
+    combinedImage = p.createGraphics(width, height)
+    combinedImage.pixelDensity(density)
+    // combinedImage.imageMode(p.CENTER)
+    // combinedImage.clear()
   }
 
   p.draw = function () {
@@ -49,7 +62,7 @@ const sketch = function (p) {
       displayHelpScreen()
       return
     }
-    debounceKeys()
+    specialKeys()
     if (displayBuffer && dirty) {
       p.background(backgroundColor)
       p.image(displayBuffer, p.width / 2, p.height / 2, p.width, p.height)
@@ -150,7 +163,7 @@ const sketch = function (p) {
     return false
   }
 
-  let debounceKeys = debounce(specialKeys, 17)
+  // let debounceKeys = debounce(specialKeys, 17)
 
   p.keyPressed = () => handleKeys()
 
@@ -172,7 +185,6 @@ const sketch = function (p) {
       showHelp = false
       paintMode = !paintMode
       dirty = true // just for the UI
-      console.log(`paint mode: ${paintMode ? 'ON' : 'OFF'}`)
       if (paintMode) {
         console.log('paint mode: ON')
         p.cursor(p.CROSS)
@@ -291,8 +303,7 @@ const sketch = function (p) {
     const newImg = p.getMonochromeImage(img, threshold)
 
     if (combinedImage === null) {
-      combinedImage = p.createGraphics(scaledWidth, scaledHeight)
-      combinedImage.pixelDensity(density)
+      setupCombinedBuffer({ width: scaledWidth, height: scaledHeight })
     }
 
     combinedImage.image(
@@ -340,7 +351,7 @@ const sketch = function (p) {
       displayBuffer.height / 2
     )
     dirty = true
-    return displayBuffer
+    return displayBuffer // as a global, this is not necessary
   }
 
   const calculateScaleRatio = function (img, size) {
@@ -356,6 +367,8 @@ const sketch = function (p) {
       img = p.loadImage(file.data, loadedImg => {
         img = loadedImg
         bwBuffer = null
+        setupPaintBuffer(img)
+        combinedImage = null
         displayBuffer = p.displayCombined(img)
         dirty = true
       })
