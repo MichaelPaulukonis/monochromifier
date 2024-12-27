@@ -148,10 +148,6 @@ const sketch = function (p) {
       displayBuffer = p.displayCombined(img)
     }
 
-    if ((p.keyIsDown(p.CONTROL) || p.keyIsDown(91)) && p.key === 's') {
-      p.save(displayBuffer, generateFilename())
-      return false // Prevent default browser behavior
-    }
     return false
   }
 
@@ -202,8 +198,10 @@ const sketch = function (p) {
     } else if (p.key === 'h' || p.key === 'H') {
       showUI = !showUI
       dirty = true
+    } else if (p.key === 's' && !paintMode && (p.keyIsDown(p.CONTROL) || p.keyIsDown(91))) {
+      p.save(displayBuffer, generateFilename())
     }
-    return false
+    return false // Prevent default browser behavior
   }
 
   function generateFilename () {
@@ -487,7 +485,9 @@ const sketch = function (p) {
       `
       Help Screen:
 
-      h - Show/Hide this help screen
+      ? - Show/Hide this help screen
+      h - Show/Hide UI
+      r - Reset to default settings
       p - Paint
       → - increase zoom
       ← - decrease zoom
@@ -509,7 +509,7 @@ const sketch = function (p) {
     p.fill(255)
     p.textSize(16)
     p.textAlign(p.CENTER, p.CENTER)
-    p.text('Processing image, please wait...', p.width / 2, 100)
+    p.text('Processing new image, please wait...', p.width / 2, 100)
   }
 }
 
