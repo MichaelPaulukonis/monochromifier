@@ -9,9 +9,9 @@ make square b&w images I use for another project
 - ~~help screen~~
 - pixeldensity (might work once crop/paint is fixed)
 - paint enhancements
-  - delete
+  - ~~delete~~
   - ~~clear entire~~
-  - show paintbrush
+  - ~~show paintbrush~~
   - fit on-screen (zoom?)
 - invert image?
 - fit to horizontal or vertical (current default)

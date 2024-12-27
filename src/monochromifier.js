@@ -22,7 +22,8 @@ const sketch = function (p) {
     showHelp: false,
     showUI: true,
     processing: false,
-    paintMode: false
+    paintMode: false,
+    eraseMode: false
   }
 
   p.preload = function () {
@@ -103,7 +104,11 @@ const sketch = function (p) {
   const drawPaintLine = () => {
     paintBuffer.stroke(255)
     paintBuffer.strokeWeight(brushSize)
+    if (modal.eraseMode) {
+      paintBuffer.erase()
+    }
     paintBuffer.line(previousMouse.x, previousMouse.y, p.mouseX, p.mouseY)
+    paintBuffer.noErase()
     previousMouse = { x: p.mouseX, y: p.mouseY }
     displayBuffer = p.displayPaint(img)
     dirty = true
@@ -180,8 +185,9 @@ const sketch = function (p) {
       sizeRatio = 1
       displayBuffer = p.displayCombined(img)
       dirty = true
-    }
-    if (p.key === 'p') {
+    } if (modal.paintMode && p.key === 'x') {
+      modal.eraseMode = !modal.eraseMode
+    } else if (p.key === 'p') {
       modal.showHelp = false
       modal.paintMode = !modal.paintMode
       dirty = true // just for the UI
@@ -474,7 +480,8 @@ const sketch = function (p) {
       `threshold: ${threshold}`,
       !modal.paintMode ? `zoom: ${(sizeRatio * 100).toFixed(0)}%` : '',
       `paint mode: ${modal.paintMode ? 'ON' : 'OFF'}`,
-      modal.paintMode ? `brush size: ${brushSize}` : ''
+      modal.paintMode ? `brush size: ${brushSize}` : '',
+      modal.paintMode ? `erase mode: ${modal.eraseMode ? 'ON' : 'OFF'}` : ''
     ].filter(Boolean)
 
     const boxWidth = 200
@@ -507,6 +514,7 @@ const sketch = function (p) {
       h - Show/Hide UI
       r - Reset to default settings
       p - Paint
+      x - Toggle erase mode
       → - increase zoom
       ← - decrease zoom
       ↑ - increase threshold
