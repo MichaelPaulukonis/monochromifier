@@ -7,12 +7,13 @@ const sketch = function (p) {
   let backgroundColor
   let displayBuffer
   let paintBuffer
+  let paintScale = 1.0
   let combinedImage = null
   let bwBuffer = null
   let lastThreshold = null
   let dirty = false
   let invert = false
-  let sizeRatio = 1
+  let sizeRatio = 1.0
   let brushSize = 10
   const density = 1
   const displaySize = 600
@@ -44,10 +45,12 @@ const sketch = function (p) {
 
     setupPaintBuffer(img)
 
-    displayBuffer = p.displayCombined(img)
+    displayBuffer = displayCombined(img)
   }
 
   const setupPaintBuffer = ({ width, height }) => {
+    const maxSize = Math.max(width, height)
+    paintScale = displaySize / maxSize
     paintBuffer && paintBuffer.remove()
     paintBuffer = p.createGraphics(width, height)
     paintBuffer.pixelDensity(density)
@@ -81,23 +84,11 @@ const sketch = function (p) {
         p.stroke(0)
         p.strokeWeight(1)
         p.fill(255)
-        p.ellipse(p.mouseX, p.mouseY, brushSize)
+        p.ellipse(p.mouseX, p.mouseY, brushSize * paintScale)
         dirty = true
       }
 
       if (modal.showUI) displayUI()
-    }
-  }
-
-  function debounce (func, wait) {
-    let timeout
-    return function executedFunction (...args) {
-      const later = () => {
-        clearTimeout(timeout)
-        func(...args)
-      }
-      clearTimeout(timeout)
-      timeout = setTimeout(later, wait)
     }
   }
 
@@ -107,10 +98,28 @@ const sketch = function (p) {
     if (modal.eraseMode) {
       paintBuffer.erase()
     }
-    paintBuffer.line(previousMouse.x, previousMouse.y, p.mouseX, p.mouseY)
+    paintBuffer.line(
+      previousMouse.x / paintScale,
+      previousMouse.y / paintScale,
+      p.mouseX / paintScale,
+      p.mouseY / paintScale
+    )
+    console.log(
+      previousMouse.x,
+      previousMouse.y,
+      p.mouseX,
+      p.mouseY
+    )
+    console.log(
+      paintScale,
+      previousMouse.x / paintScale,
+      previousMouse.y / paintScale,
+      p.mouseX / paintScale,
+      p.mouseY / paintScale
+    )
     paintBuffer.noErase()
     previousMouse = { x: p.mouseX, y: p.mouseY }
-    displayBuffer = p.displayPaint(img)
+    displayBuffer = displayPaint(img)
     dirty = true
   }
 
@@ -131,6 +140,7 @@ const sketch = function (p) {
   }
 
   p.mousePressed = function () {
+    if (!modal.paintMode) return
     previousMouse = { x: p.mouseX, y: p.mouseY }
     drawPaintLine()
   }
@@ -141,31 +151,31 @@ const sketch = function (p) {
     if (modal.paintMode) {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
         brushSize = p.constrain(brushSize + change, 1, 100)
-        displayBuffer = p.displayPaint(img)
+        displayBuffer = displayPaint(img)
       } else if (p.keyIsDown(p.LEFT_ARROW)) {
         brushSize = p.constrain(brushSize - change, 1, 100)
-        displayBuffer = p.displayPaint(img)
+        displayBuffer = displayPaint(img)
       } else if (p.keyIsDown(p.BACKSPACE) || p.keyIsDown(p.DELETE)) {
         paintBuffer.clear()
-        displayBuffer = p.displayPaint(img)
+        displayBuffer = displayPaint(img)
         dirty = true
       }
     } else {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
         sizeRatio = p.constrain(sizeRatio + change / 100, 0.01, 10)
-        displayBuffer = p.displayCombined(img)
+        displayBuffer = displayCombined(img)
       } else if (p.keyIsDown(p.LEFT_ARROW)) {
         sizeRatio = p.constrain(sizeRatio - change / 100, 0.01, 10)
-        displayBuffer = p.displayCombined(img)
+        displayBuffer = displayCombined(img)
       }
     }
 
     if (p.keyIsDown(p.UP_ARROW)) {
       threshold = p.constrain(threshold + change, 0, 255)
-      displayBuffer = p.displayCombined(img)
+      displayBuffer = displayCombined(img)
     } else if (p.keyIsDown(p.DOWN_ARROW)) {
       threshold = p.constrain(threshold - change, 0, 255)
-      displayBuffer = p.displayCombined(img)
+      displayBuffer = displayCombined(img)
     }
 
     return false
@@ -177,15 +187,16 @@ const sketch = function (p) {
     if (p.key === 'i') {
       invert = !invert
       backgroundColor = invert ? p.color(0, 0, 0) : p.color(255, 255, 255)
-      displayBuffer = p.displayCombined(img)
+      displayBuffer = displayCombined(img)
       dirty = true
     }
     if (p.key === 'r') {
       threshold = 128
       sizeRatio = 1
-      displayBuffer = p.displayCombined(img)
+      displayBuffer = displayCombined(img)
       dirty = true
-    } if (modal.paintMode && p.key === 'x') {
+    }
+    if (modal.paintMode && p.key === 'x') {
       modal.eraseMode = !modal.eraseMode
     } else if (p.key === 'p') {
       modal.showHelp = false
@@ -193,13 +204,13 @@ const sketch = function (p) {
       dirty = true // just for the UI
       if (modal.paintMode) {
         p.cursor(p.CROSS)
-        p.resizeCanvas(img.width, img.height)
+        p.resizeCanvas(img.width * paintScale, img.height * paintScale)
         const tempBuff = p.createGraphics(img.width, img.height)
         tempBuff.pixelDensity(density)
         tempBuff.imageMode(p.CENTER)
         displayBuffer.remove()
         displayBuffer = tempBuff
-        p.displayPaint(img)
+        displayPaint(img)
         previousMouse = { x: p.mouseX, y: p.mouse }
       } else {
         p.cursor()
@@ -209,7 +220,7 @@ const sketch = function (p) {
         tempBuff.imageMode(p.CENTER)
         displayBuffer.remove()
         displayBuffer = tempBuff
-        displayBuffer = p.displayCombined(img)
+        displayBuffer = displayCombined(img)
       }
     }
     if (p.key === '?') {
@@ -288,11 +299,10 @@ const sketch = function (p) {
     return newImg
   }
 
-  p.displayPaint = function (img) {
-    // to scale this, we also have to have scaled at createGraphics
-    // const scaleRatio = calculateScaleRatio(img, outputSize)
+  // this doesn't display
+  // it builds the "target" image at the desired size
+  const displayPaint = img => {
     const newImg = p.getMonochromeImage(img, threshold)
-
     displayBuffer.background(backgroundColor)
     displayBuffer.image(
       newImg,
@@ -309,7 +319,7 @@ const sketch = function (p) {
     return displayBuffer
   }
 
-  p.displayCombined = function (img) {
+  const displayCombined = img => {
     const scaleRatio = calculateScaleRatio(img, outputSize)
     const scaledWidth = Math.round(img.width * scaleRatio)
     const scaledHeight = Math.round(img.height * scaleRatio)
@@ -368,12 +378,11 @@ const sketch = function (p) {
     return displayBuffer // as a global, this is not necessary
   }
 
-  const calculateScaleRatio = function (img, size) {
+  const calculateScaleRatio = function (img, size = outputSize) {
     // canvas size should be a square, normally
     // if not, we can reconsider everything
-    const maxSize = outputSize
     const maxImgSize = Math.max(img.width, img.height)
-    return maxSize / maxImgSize
+    return size / maxImgSize
   }
 
   function handleFile (file) {
@@ -385,7 +394,7 @@ const sketch = function (p) {
         modal.processing = false
         setupPaintBuffer(img)
         combinedImage = null
-        displayBuffer = p.displayCombined(img)
+        displayBuffer = displayCombined(img)
         dirty = true
       })
     }

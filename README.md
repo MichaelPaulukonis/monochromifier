@@ -12,8 +12,9 @@ make square b&w images I use for another project
   - ~~delete~~
   - ~~clear entire~~
   - ~~show paintbrush~~
-  - fit on-screen (zoom?)
+  - ~~fit on-screen (zoom?)~~
 - invert image?
+  - started, but incomplete
 - fit to horizontal or vertical (current default)
 - shift zoomed image (up/down only?)
 - clear canvas? Allow for paint only (eh, I dunno)
