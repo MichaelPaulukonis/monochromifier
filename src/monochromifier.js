@@ -22,9 +22,11 @@ const sketch = function (p) {
   let previousMouse = { x: 0, y: 0 }
   const offset = {
     vertical: 0,
-    horizontal: 0
+    horizontal: 0,
+    verticalMax: 0,
+    horizontalMax: 0
   }
-  let offsetMax = 0
+  // let offsetMax = 0
 
   const scaleMethods = {
     fitToWidth: 'fitToWidth',
@@ -199,6 +201,8 @@ const sketch = function (p) {
     if (p.key === 'r') {
       threshold = 128
       sizeRatio = 1
+      offset.horizontal = 0
+      offset.vertical = 0
       buildCombinedLayer(img)
       dirty = true
     }
@@ -252,11 +256,25 @@ const sketch = function (p) {
     ) {
       p.save(displayLayer, generateFilename())
     } else if (p.key === '>') {
-      offset.vertical = Math.min(offset.vertical + 100, offsetMax)
+      if (scaleMethod === scaleMethods.fitToWidth) {
+        offset.vertical = Math.min(offset.vertical + 100, offset.verticalMax)
+      } else if (scaleMethod === scaleMethods.fitToHeight) {
+        offset.horizontal = Math.min(
+          offset.horizontal + 100,
+          offset.horizontalMax
+        )
+      }
       dirty = true
       buildCombinedLayer(img)
     } else if (p.key === '<') {
-      offset.vertical = Math.max(offset.vertical - 100, -offsetMax)
+      if (scaleMethod === scaleMethods.fitToWidth) {
+        offset.vertical = Math.max(offset.vertical - 100, -offset.verticalMax)
+      } else if (scaleMethod === scaleMethods.fitToHeight) {
+        offset.horizontal = Math.max(
+          offset.horizontal - 100,
+          -offset.horizontalMax
+        )
+      }
       dirty = true
       buildCombinedLayer(img)
     }
@@ -422,10 +440,16 @@ const sketch = function (p) {
   const calculateOffsetMax = function (img, size = outputSize) {
     switch (scaleMethod) {
       case scaleMethods.fitToWidth:
-        return Math.max(Math.floor(((img.height * size) / img.width - size) / 2), 0)
+        return Math.max(
+          Math.floor(((img.height * size) / img.width - size) / 2),
+          0
+        )
 
       case scaleMethods.fitToHeight:
-        return Math.max(Math.floor(((img.width * size) / img.height - size) / 2), 0)
+        return Math.max(
+          Math.floor(((img.width * size) / img.height - size) / 2),
+          0
+        )
 
       case scaleMethods.fitToCanvas:
       default:
@@ -438,9 +462,19 @@ const sketch = function (p) {
     modal.processing = false
     setupPaintBuffer(img)
     combinedImage = null
-    offsetMax = calculateOffsetMax(img, outputSize)
     offset.vertical = 0
     offset.horizontal = 0
+    offset.verticalMax = 0
+    offset.horizontalMax = 0
+
+    const offsetMax = calculateOffsetMax(img, outputSize)
+
+    if (scaleMethod === scaleMethods.fitToWidth) {
+      offset.verticalMax = offsetMax
+    } else if (scaleMethod === scaleMethods.fitToHeight) {
+      offset.horizontalMax = offsetMax
+    }
+
     buildCombinedLayer(img)
     modal.refit = false
     dirty = true
@@ -542,10 +576,11 @@ const sketch = function (p) {
   }
 
   const displayUI = () => {
+    const offsetAmount = scaleMethod === scaleMethods.fitToWidth ? offset.vertical : offset.horizontal
     const uiText = [
       `threshold: ${threshold}`,
       !modal.paintMode ? `zoom: ${(sizeRatio * 100).toFixed(0)}%` : '',
-      !modal.paintMode ? `offset: ${offset.vertical}` : '',
+      !modal.paintMode ? `offset: ${offsetAmount}` : '',
       !modal.paintMode ? `fit method: ${scaleMethod}` : '',
       `paint mode: ${modal.paintMode ? 'ON' : 'OFF'}`,
       modal.paintMode ? `brush size: ${brushSize}` : '',
