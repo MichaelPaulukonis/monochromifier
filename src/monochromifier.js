@@ -10,7 +10,7 @@ const sketch = function (p) {
   let displayLayer
   let paintLayer
   let paintScale = 1.0
-  let combinedImage = null
+  let combinedLayer = null
   let bwCachedImage = null
   let dirty = false
   let invert = false
@@ -70,15 +70,17 @@ const sketch = function (p) {
     paintScale = displaySize / maxSize
     paintLayer && paintLayer.remove()
     paintLayer = p.createGraphics(width, height)
+    paintLayer.elt.id = `paint.${p.frameCount}`
     paintLayer.pixelDensity(density)
     paintLayer.imageMode(p.CENTER)
     paintLayer.clear()
   }
 
   const setupCombinedBuffer = ({ width, height }) => {
-    combinedImage && combinedImage.remove()
-    combinedImage = p.createGraphics(width, height)
-    combinedImage.pixelDensity(density)
+    combinedLayer && combinedLayer.remove()
+    combinedLayer = p.createGraphics(width, height)
+    combinedLayer.elt.id = `combined.${p.frameCount}`
+    combinedLayer.pixelDensity(density)
   }
 
   p.draw = function () {
@@ -216,6 +218,7 @@ const sketch = function (p) {
         p.cursor(p.CROSS)
         p.resizeCanvas(img.width * paintScale, img.height * paintScale)
         const tempBuff = p.createGraphics(img.width, img.height)
+        tempBuff.elt.id = `temp_paint_on.${p.frameCount}`
         tempBuff.pixelDensity(density)
         tempBuff.imageMode(p.CENTER)
         displayLayer.remove()
@@ -226,6 +229,7 @@ const sketch = function (p) {
         p.cursor()
         p.resizeCanvas(displaySize, displaySize)
         const tempBuff = p.createGraphics(outputSize, outputSize)
+        tempBuff.elt.id = `temp_paint_off.${p.frameCount}`
         tempBuff.pixelDensity(density)
         tempBuff.imageMode(p.CENTER)
         displayLayer.remove()
@@ -364,11 +368,11 @@ const sketch = function (p) {
     // no need to process the entire image
     const newImg = getMonochromeImage(img, threshold)
 
-    if (combinedImage === null) {
+    if (combinedLayer === null) {
       setupCombinedBuffer({ width: scaledWidth, height: scaledHeight })
     }
 
-    combinedImage.image(
+    combinedLayer.image(
       newImg,
       0 + offset.horizontal,
       0 + offset.vertical,
@@ -379,7 +383,7 @@ const sketch = function (p) {
       img.width,
       img.height
     )
-    combinedImage.image(
+    combinedLayer.image(
       paintLayer,
       0 + offset.horizontal,
       0 + offset.vertical,
@@ -387,7 +391,7 @@ const sketch = function (p) {
       scaledHeight
     )
 
-    const croppedImg = cropWhitespace(combinedImage)
+    const croppedImg = cropWhitespace(combinedLayer)
 
     // Scale the cropped image to ensure it is as large as possible
     // and apply zoom
@@ -458,10 +462,13 @@ const sketch = function (p) {
   }
 
   function processImage (img) {
-    bwCachedImage = null
+    if (!modal.refit) {
+      bwCachedImage = null // this is not required for refit
+    }
     modal.processing = false
     setupPaintBuffer(img)
-    combinedImage = null
+    combinedLayer && combinedLayer.remove()
+    combinedLayer = null
     offset.vertical = 0
     offset.horizontal = 0
     offset.verticalMax = 0

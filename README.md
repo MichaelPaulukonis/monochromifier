@@ -4,6 +4,12 @@ make square b&w images I use for another project
 
 ## TODO:
 
+- Fix offset + zoom
+- allow offset during zoom
+- UI colors (or outline or something)
+- message during re-processing
+- speed-up reprocessing
+  - skip reprocessing on refit
 - ~~speed of painting~~
 - ~~paint only on original size (no crop, no zoom)~~
 - ~~help screen~~
@@ -15,7 +21,7 @@ make square b&w images I use for another project
   - ~~fit on-screen (zoom?)~~
 - invert image?
   - started, but incomplete
-- fit to horizontal or vertical (current default)
+- ~fit to horizontal or vertical (current default)~
 - shift zoomed image (up/down only?)
 - clear canvas? Allow for paint only (eh, I dunno)
 - publish to gh-pages
