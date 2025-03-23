@@ -10,6 +10,8 @@ make square b&w images I use for another project
 - message during re-processing
 - speed-up reprocessing
   - skip reprocessing on refit
+- better key-handling
+- segregation of keys for display/paint mode 
 - ~~speed of painting~~
 - ~~paint only on original size (no crop, no zoom)~~
 - ~~help screen~~

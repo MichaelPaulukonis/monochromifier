@@ -47,7 +47,7 @@ const sketch = function (p) {
 
   p.preload = function () {
     img = p.loadImage(
-      './sample_images/gilbertgeorgecom0000gilb_0028.jpg_panel_1.jpg'
+      './sample_images/mona.crosshairs.png'
     )
   }
 
@@ -160,10 +160,10 @@ const sketch = function (p) {
 
     if (modal.paintMode) {
       if (p.keyIsDown(p.RIGHT_ARROW)) {
-        brushSize = p.constrain(brushSize + change, 1, 100)
+        brushSize = p.constrain(brushSize + change, 1, 300)
         buildPaintLayer(img)
       } else if (p.keyIsDown(p.LEFT_ARROW)) {
-        brushSize = p.constrain(brushSize - change, 1, 100)
+        brushSize = p.constrain(brushSize - change, 1, 300)
         buildPaintLayer(img)
       } else if (p.keyIsDown(p.BACKSPACE) || p.keyIsDown(p.DELETE)) {
         paintLayer.clear()
@@ -197,6 +197,7 @@ const sketch = function (p) {
     if (p.key === 'i') {
       invert = !invert
       backgroundColor = invert ? p.color(0, 0, 0) : p.color(255, 255, 255)
+      bwCachedImage = null
       buildCombinedLayer(img)
       dirty = true
     }
@@ -464,9 +465,9 @@ const sketch = function (p) {
   function processImage (img) {
     if (!modal.refit) {
       bwCachedImage = null // this is not required for refit
+      setupPaintBuffer(img)
     }
     modal.processing = false
-    setupPaintBuffer(img)
     combinedLayer && combinedLayer.remove()
     combinedLayer = null
     offset.vertical = 0
@@ -491,7 +492,7 @@ const sketch = function (p) {
     if (file.type === 'image') {
       modal.processing = true
       img = null
-      img = p.loadImage(file.data, loadedImg => {
+      p.loadImage(file.data, loadedImg => {
         img = loadedImg
         processImage(loadedImg)
       })
@@ -583,12 +584,16 @@ const sketch = function (p) {
   }
 
   const displayUI = () => {
-    const offsetAmount = scaleMethod === scaleMethods.fitToWidth ? offset.vertical : offset.horizontal
+    const offsetAmount =
+      scaleMethod === scaleMethods.fitToWidth
+        ? offset.vertical
+        : offset.horizontal
     const uiText = [
       `threshold: ${threshold}`,
       !modal.paintMode ? `zoom: ${(sizeRatio * 100).toFixed(0)}%` : '',
       !modal.paintMode ? `offset: ${offsetAmount}` : '',
       !modal.paintMode ? `fit method: ${scaleMethod}` : '',
+      !modal.paintMode ? `invert: ${invert ? 'inverted' : 'normal'}` : '',
       `paint mode: ${modal.paintMode ? 'ON' : 'OFF'}`,
       modal.paintMode ? `brush size: ${brushSize}` : '',
       modal.paintMode ? `erase mode: ${modal.eraseMode ? 'ON' : 'OFF'}` : ''
@@ -623,10 +628,13 @@ const sketch = function (p) {
       ? - Show/Hide this help screen
       h - Show/Hide UI
       r - Reset to default settings
+      i - Invert image
       p - Paint
       x - Toggle erase mode
       → - increase zoom
       ← - decrease zoom
+      > - increase offset (h/v)
+      < - decrease offset (h/v)
       ↑ - increase threshold
       ↓ - decrease threshold
       → - increase brush size
@@ -639,13 +647,13 @@ const sketch = function (p) {
   }
 
   function displayProcessingText () {
-    p.fill(0, 150)
+    p.fill(p.color('#e75397'), 150)
     p.rect(50, 50, p.width - 100, 100, 10)
 
     p.fill(255)
     p.textSize(16)
     p.textAlign(p.CENTER, p.CENTER)
-    p.text('Processing new image, please wait...', p.width / 2, 100)
+    p.text('Processing image, please wait...', p.width / 2, 100)
   }
 }
 
