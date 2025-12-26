@@ -5,9 +5,73 @@
     <link rel="icon" type="image/svg+xml" href="./assets/favicon-BDx26RQo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>monochromifier</title>
-    <script type="module" crossorigin src="./assets/main-BJG7ZHhA.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/main-CzmrdZFV.css">
+    <script type="module" crossorigin src="./assets/main-DPexxfVH.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/main-IvaMWxKW.css">
   </head>
   <body>
+    
+    <div id="info-box" class="info-box hidden">
+      <h2>Monochromifier</h2>
+      <h3>Keyboard Shortcuts</h3>
+      
+      <div class="shortcuts-grid">
+        <div class="shortcut-section">
+          <h4>Help & UI</h4>
+          <ul>
+            <li><kbd>?</kbd> - Show/Hide this help</li>
+            <li><kbd>h</kbd> - Show/Hide UI</li>
+            <li><kbd>o</kbd> - Toggle OSD</li>
+            <li><kbd>e</kbd> - Toggle Edit Mode</li>
+          </ul>
+        </div>
+        
+        <div class="shortcut-section">
+          <h4>Image Operations</h4>
+          <ul>
+            <li><kbd>i</kbd> - Invert image</li>
+            <li><kbd>t</kbd> - Toggle transparency</li>
+            <li><kbd>r</kbd> - Reset view & threshold</li>
+          </ul>
+        </div>
+        
+        <div class="shortcut-section">
+          <h4>Adjust Mode</h4>
+          <ul>
+            <li><kbd>d</kbd> - Reset pan</li>
+            <li><kbd>→</kbd> / <kbd>←</kbd> - Zoom in/out</li>
+            <li><kbd>1</kbd> - Fit both</li>
+            <li><kbd>2</kbd> - Fit width</li>
+            <li><kbd>3</kbd> - Fit height</li>
+            <li><kbd>CMD</kbd>+<kbd>s</kbd> - Save image</li>
+          </ul>
+        </div>
+        
+        <div class="shortcut-section">
+          <h4>Edit Mode</h4>
+          <ul>
+            <li><kbd>p</kbd> - Paint tool</li>
+            <li><kbd>c</kbd> - Crop tool</li>
+            <li><kbd>x</kbd> - Toggle erase (Paint)</li>
+            <li><kbd>→</kbd> / <kbd>←</kbd> - Brush size</li>
+            <li><kbd>CMD</kbd>+Click - Draw line</li>
+          </ul>
+        </div>
+        
+        <div class="shortcut-section full-width">
+          <h4>Global</h4>
+          <ul>
+            <li><kbd>↑</kbd> / <kbd>↓</kbd> - Adjust threshold</li>
+            <li><kbd>CMD</kbd>+<kbd>c</kbd> - Toggle autocrop</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="version-info">
+        <span id="version-info">v1.0.0</span>
+      </div>
+      
+      <button id="close-info-box" class="close-button">Close</button>
+    </div>
+
   </body>
 </html>
