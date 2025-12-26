@@ -5,11 +5,42 @@
     <link rel="icon" type="image/svg+xml" href="./assets/favicon-BDx26RQo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>monochromifier</title>
-    <script type="module" crossorigin src="./assets/main-DPexxfVH.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/main-IvaMWxKW.css">
+    <script type="module" crossorigin src="./assets/main-B0dJCixu.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/main-BxFL3laz.css">
   </head>
   <body>
     
+    <div id="grid-controls" class="grid-controls hidden">
+      <h3>Grid Overlay</h3>
+      <div class="control-group">
+        <label for="grid-toggle">Enable Grid</label>
+        <input type="checkbox" id="grid-toggle" />
+      </div>
+      <div class="control-group">
+        <label for="grid-type">Type</label>
+        <select id="grid-type">
+          <option value="1-split">Crosshair (1-split)</option>
+          <option value="2-split">Thirds (2-split)</option>
+          <option value="3-split">Fourths (3-split)</option>
+          <option value="4-split">Fifths (4-split)</option>
+          <option value="9-split">Tenths (9-split)</option>
+          <option value="golden">Golden Ratio</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="grid-color">Color</label>
+        <input type="color" id="grid-color" value="#000000" />
+      </div>
+      <div class="control-group">
+        <label for="grid-opacity">Opacity</label>
+        <input type="range" id="grid-opacity" min="0" max="255" value="150" />
+      </div>
+      <div class="control-group">
+        <label for="grid-thickness">Thickness</label>
+        <input type="range" id="grid-thickness" min="1" max="10" value="1" />
+      </div>
+    </div>
+
     <div id="info-box" class="info-box hidden">
       <h2>Monochromifier</h2>
       <h3>Keyboard Shortcuts</h3>
@@ -20,6 +51,7 @@
           <ul>
             <li><kbd>?</kbd> - Show/Hide this help</li>
             <li><kbd>h</kbd> - Show/Hide UI</li>
+            <li><kbd>g</kbd> - Toggle Grid Dialog</li>
             <li><kbd>o</kbd> - Toggle OSD</li>
             <li><kbd>e</kbd> - Toggle Edit Mode</li>
           </ul>
@@ -52,6 +84,7 @@
             <li><kbd>p</kbd> - Paint tool</li>
             <li><kbd>c</kbd> - Crop tool</li>
             <li><kbd>x</kbd> - Toggle erase (Paint)</li>
+            <li><kbd>BKSP</kbd> / <kbd>DEL</kbd> - Clear paint</li>
             <li><kbd>→</kbd> / <kbd>←</kbd> - Brush size</li>
             <li><kbd>CMD</kbd>+Click - Draw line</li>
           </ul>
