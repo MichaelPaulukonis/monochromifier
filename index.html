@@ -6,17 +6,22 @@
   <link rel="icon" type="image/svg+xml" href="./assets/favicon-BDx26RQo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>monochromifier</title>
-  <script type="module" crossorigin src="./assets/main-PvvvmG3R.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/main-BdCiFA4g.css">
+  <script type="module" crossorigin src="./assets/main-5cYU5zd-.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/main-DUvjfKOY.css">
 </head>
 
 <body>
+<div id="controls-sidebar">
 
-  <div id="grid-controls" class="grid-controls hidden">
-    <h3>Grid Overlay</h3>
-    <div class="control-group">
-      <label for="grid-toggle">Enable Grid</label>
-      <input type="checkbox" id="grid-toggle" />
+<div id="grid-controls" class="control-panel draggable hidden">
+  <div class="drag-handle">
+    <span>:: Grid Controls</span>
+    <button class="panel-collapse-btn" aria-label="Collapse panel">−</button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-heading-row">
+      <h3 id="grid-heading">Grid Overlay</h3>
+      <input type="checkbox" id="grid-toggle" aria-labelledby="grid-heading" />
     </div>
     <div class="control-group">
       <label for="grid-type">Type</label>
@@ -35,13 +40,101 @@
     </div>
     <div class="control-group">
       <label for="grid-opacity">Opacity</label>
-      <input type="range" id="grid-opacity" min="0" max="255" value="150" />
+      <div class="slider-row">
+        <input type="range" id="grid-opacity" min="0" max="255" value="150" />
+        <output id="grid-opacity-value" class="slider-value" for="grid-opacity">150</output>
+      </div>
     </div>
     <div class="control-group">
       <label for="grid-thickness">Thickness</label>
-      <input type="range" id="grid-thickness" min="1" max="10" value="1" />
+      <div class="slider-row">
+        <input type="range" id="grid-thickness" min="1" max="10" value="1" />
+        <output id="grid-thickness-value" class="slider-value" for="grid-thickness">1</output>
+      </div>
     </div>
   </div>
+</div>
+
+<div id="halftone-controls" class="control-panel draggable hidden">
+  <div class="drag-handle">
+    <span>:: Halftone Controls</span>
+    <button class="panel-collapse-btn" aria-label="Collapse panel">−</button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-heading-row">
+      <h3 id="halftone-heading">Halftone Effect</h3>
+      <input type="checkbox" id="halftone-toggle" aria-labelledby="halftone-heading" />
+    </div>
+    <div class="control-group">
+      <label for="halftone-type">Pattern</label>
+      <select id="halftone-type">
+        <option value="0">Circular Dots</option>
+        <option value="1">Line Screen</option>
+        <option value="2">Bayer Dither</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label for="halftone-size">Size/Frequency</label>
+      <div class="slider-row">
+        <input type="range" id="halftone-size" min="2" max="200" step="1" value="8" />
+        <output id="halftone-size-value" class="slider-value" for="halftone-size">8</output>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="halftone-angle">Angle (Deg)</label>
+      <div class="slider-row">
+        <input type="range" id="halftone-angle" min="0" max="180" step="1" value="45" />
+        <output id="halftone-angle-value" class="slider-value" for="halftone-angle">45°</output>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="color-mode-controls" class="control-panel draggable hidden">
+  <div class="drag-handle">
+    <span>:: Color Mode Controls</span>
+    <button class="panel-collapse-btn" aria-label="Collapse panel">−</button>
+  </div>
+  <div class="panel-body">
+    <h3>Grayscale Source</h3>
+    <div class="control-group">
+      <label for="color-mode">Channel Mode</label>
+      <select id="color-mode">
+        <option value="0">Full Color (Average)</option>
+        <option value="1">Red Channel</option>
+        <option value="2">Green Channel</option>
+        <option value="3">Blue Channel</option>
+        <option value="4">Luminance (Rec.709)</option>
+        <option value="5">Custom Weights</option>
+      </select>
+    </div>
+    <div id="custom-weights-group" class="weights-inactive">
+      <div class="control-group">
+        <label for="weight-r">R Weight</label>
+        <div class="slider-row">
+          <input type="range" id="weight-r" min="0" max="1" step="0.01" value="1.00" disabled />
+          <output id="weight-r-value" class="slider-value" for="weight-r">1.000</output>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="weight-g">G Weight</label>
+        <div class="slider-row">
+          <input type="range" id="weight-g" min="0" max="1" step="0.01" value="0.00" disabled />
+          <output id="weight-g-value" class="slider-value" for="weight-g">0.000</output>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="weight-b">B Weight</label>
+        <div class="slider-row">
+          <input type="range" id="weight-b" min="0" max="1" step="0.01" value="0.00" disabled />
+          <output id="weight-b-value" class="slider-value" for="weight-b">0.000</output>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #controls-sidebar -->
 
   <div id="info-box" class="info-box hidden">
     <h2>Monochromifier</h2>
