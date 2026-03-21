@@ -6,8 +6,8 @@
   <link rel="icon" type="image/svg+xml" href="./assets/favicon-BDx26RQo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>monochromifier</title>
-  <script type="module" crossorigin src="./assets/main-5cYU5zd-.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/main-DUvjfKOY.css">
+  <script type="module" crossorigin src="./assets/main-DlfaN10V.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/main-6BdrFis_.css">
 </head>
 
 <body>
@@ -136,6 +136,35 @@
 
 </div><!-- #controls-sidebar -->
 
+  <div id="about-box" class="info-box hidden">
+    <h2>Monochromifier</h2>
+    <p>Convert color images to high-contrast monochrome using an adjustable threshold.</p>
+    <h3>Basic Usage</h3>
+    <ul>
+      <li>Drop or click to load an image onto the canvas</li>
+      <li>Use <kbd>↑</kbd> / <kbd>↓</kbd> to adjust the threshold</li>
+      <li>Press <kbd>e</kbd> to enter edit mode (paint &amp; crop)</li>
+      <li>Press <kbd>?</kbd> to view all keyboard shortcuts</li>
+    </ul>
+    <footer class="info-footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <span>© 2025 <a href="http://michaelpaulukonis.github.io" target="_blank" rel="noopener">Michael Paulukonis</a></span>
+          <span class="separator">•</span>
+          <a href="https://github.com/MichaelPaulukonis/genart-monorepo/tree/main/apps/monochromifier" target="_blank"
+            rel="noopener">Code on GitHub</a>
+        </div>
+        <div class="version-container">
+          <span class="version-text">v1.0.0</span>
+        </div>
+      </div>
+      <div class="footer-actions">
+        <button id="open-help-btn" class="close-button" style="background-color:#444;">Help</button>
+        <button class="close-button">Close</button>
+      </div>
+    </footer>
+  </div>
+
   <div id="info-box" class="info-box hidden">
     <h2>Monochromifier</h2>
     <h3>Keyboard Shortcuts</h3>
@@ -207,7 +236,10 @@
           <span id="version-info" class="version-text">v1.0.0</span>
         </div>
       </div>
-      <button id="close-info-box" class="close-button">Close</button>
+      <div class="footer-actions">
+        <button id="open-about-btn" class="close-button" style="background-color:#444;">About</button>
+        <button id="close-info-box" class="close-button">Close</button>
+      </div>
     </footer>
   </div>
 
